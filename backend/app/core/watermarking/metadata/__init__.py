@@ -1,0 +1,2 @@
+"""Metadata-based watermarking module"""
+

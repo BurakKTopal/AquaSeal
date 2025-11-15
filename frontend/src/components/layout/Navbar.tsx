@@ -3,10 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import WalletButton from '../auth/WalletButton';
 import {
   CampModal,
-  useModal as useCampModal,
 } from "@campnetwork/origin/react";
 import {
-  useModal,
   useWallet,
   OAuthMethod,
   ParaModal,
@@ -18,8 +16,6 @@ import styles from './Navbar.module.css';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const { openModal: openCampModal } = useCampModal();
-  const { openModal } = useModal();
   const acc = useWagmiAccount();
   const [provider, setProvider] = useState<any>(null);
   const { data: wallet } = useWallet();
@@ -45,22 +41,22 @@ const Navbar: React.FC = () => {
             <img src="/logo.svg" alt="AquaSeal" style={{ height: '32px', marginRight: '8px' }} />
             AquaSeal
           </Link>
-          
+
           <div className={styles.links}>
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`${styles.link} ${location.pathname === '/' ? styles.active : ''}`}
             >
               Upload
             </Link>
-            <Link 
-              to="/verify" 
+            <Link
+              to="/verify"
               className={`${styles.link} ${location.pathname === '/verify' ? styles.active : ''}`}
             >
               Verify
             </Link>
-            <Link 
-              to="/developer" 
+            <Link
+              to="/developer"
               className={`${styles.link} ${location.pathname === '/developer' ? styles.active : ''}`}
             >
               Developer
@@ -72,7 +68,7 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </nav>
-      
+
       <CampModal defaultProvider={provider} injectButton={false} />
       <ParaModal
         appName="Camp"

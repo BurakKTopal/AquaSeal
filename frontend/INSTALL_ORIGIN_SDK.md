@@ -36,4 +36,3 @@ If the GitHub installation doesn't work, you can:
 ## Current Status
 
 The application works in mock mode without the Origin SDK installed. The watermarking functionality is fully operational, and IpNFT minting will work once the SDK is properly installed and configured.
-

@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     make \
     libc6-dev \
-    libsndfile1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
@@ -46,12 +45,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install only runtime system dependencies (no build tools)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libsndfile1 \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean \
-    && rm -rf /tmp/* /var/tmp/*
+# Note: No audio libraries needed - only MP3 metadata watermarking (mutagen) is used
+# Mutagen is pure Python and doesn't require system libraries
+RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    rm -rf /tmp/* /var/tmp/*
 
 # Copy Python packages from builder stage
 COPY --from=builder /root/.local /root/.local

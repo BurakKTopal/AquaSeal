@@ -37,7 +37,11 @@ const UploadPage: React.FC = () => {
           setNftId(mintResult.nftId);
         }
       } catch (err: any) {
-        console.error('[Upload] Minting error:', err.message);
+        console.error('[Upload] Minting error, falling back to mock NFT:', err.message);
+        // Fallback to mock NFT ID when real minting fails (same as audio/PDF)
+        const mockNftId = `mock_${watermarkResult.watermark_hash.substring(0, 16)}_${Date.now()}`;
+        setNftId(mockNftId);
+        console.log('[Upload] Mock NFT ID generated:', mockNftId);
       }
     }
   };

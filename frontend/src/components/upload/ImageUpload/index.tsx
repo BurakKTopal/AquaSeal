@@ -196,7 +196,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             or click to browse
           </p>
           <div className={styles.supported}>
-            <span>Supports: Images (JPG, PNG, BMP, TIFF) • Audio (WAV, MP3, FLAC, OGG, M4A) • PDFs</span>
+            <span>Supports: Images (JPG, PNG, BMP, TIFF) • Audio (MP3) • PDFs</span>
             <span>Max size: 50MB</span>
           </div>
         </div>

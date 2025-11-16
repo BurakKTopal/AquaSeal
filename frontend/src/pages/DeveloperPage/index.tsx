@@ -155,7 +155,6 @@ const DeveloperPage: React.FC = () => {
               <option value="image/png">image/png</option>
               <option value="image/jpeg">image/jpeg</option>
               <option value="audio/mpeg">audio/mpeg</option>
-              <option value="audio/wav">audio/wav</option>
             </select>
           </div>
 

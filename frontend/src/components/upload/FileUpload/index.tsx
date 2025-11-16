@@ -53,7 +53,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 : 'Drag & drop a file here, or click to select'}
             </p>
             <p className="file-upload-hint">
-              Supports: Images (JPG, PNG, BMP, TIFF), Audio (WAV, MP3, FLAC, OGG, M4A), and PDFs
+              Supports: Images (JPG, PNG, BMP, TIFF), Audio (MP3), and PDFs
             </p>
             <p className="file-upload-hint">Max size: 50MB</p>
           </div>

@@ -16,22 +16,41 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       nodePolyfills({
-        include: ['buffer', 'crypto', 'stream', 'util', 'process'],
+        include: [
+          'buffer',
+          'crypto',
+          'stream',
+          'util',
+          'process',
+          'events',
+          'string_decoder',
+          'assert',
+          'constants',
+          'path',
+          'os',
+        ],
         globals: {
           Buffer: true,
           global: true,
           process: true,
         },
+        // Fix for readable-stream compatibility
+        protocolImports: true,
       }),
     ],
     define: {
       'process.env': {},
       global: 'globalThis',
+      'process.env.NODE_ENV': JSON.stringify(mode),
+      // Ensure process.browser is defined for readable-stream
+      'process.browser': 'true',
     },
     resolve: {
       alias: {
         crypto: 'crypto-browserify',
         stream: 'stream-browserify',
+        // Ensure readable-stream uses browser-compatible version
+        'readable-stream': 'readable-stream',
       },
     },
     optimizeDeps: {
@@ -40,7 +59,16 @@ export default defineConfig(({ mode }) => {
           global: 'globalThis',
         },
       },
-      include: ['crypto-browserify'],
+      include: [
+        'crypto-browserify',
+        'stream-browserify',
+        'buffer',
+        'readable-stream',
+        'ripemd160',
+        'create-hash',
+      ],
+      // Force pre-bundling of nested dependencies
+      force: true,
     },
     build: {
       commonjsOptions: {
@@ -51,7 +79,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: undefined,
         },
         external: (id) => {
-          // Never externalize crypto - it must be polyfilled
+          // Never externalize crypto/stream polyfills - they must be bundled
           if (id === 'crypto' || id === 'stream' || id === 'buffer') {
             return false;
           }
@@ -60,13 +88,18 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3000,
+      host: true, // Allow access from network
+      hmr: {
+        // Use the same host as the server
+        host: 'localhost',
+        port: 3000,
+      },
       proxy: {
         '/api': {
           target: apiUrl,
           changeOrigin: true,
         },
       },
-      host: true,
     },
   };
 })

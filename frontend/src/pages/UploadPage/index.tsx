@@ -17,32 +17,57 @@ const UploadPage: React.FC = () => {
   const handleMetadataSubmit = async (metadata: MetadataInput) => {
     if (!file) return;
 
+    // First, complete watermarking - this must always succeed
     const watermarkResult = await watermarkFile(file, metadata);
     
-    if (watermarkResult?.watermark_hash && authenticated) {
-      try {
-        const mintResult = await mintIpNFT({
-          watermarkHash: watermarkResult.watermark_hash,
-          userId: metadata.user_id,
-          timestamp: Date.now(),
-          contentType: fileType || 'unknown',
-          license: metadata.license,
-          file: file,
-          additionalMetadata: {
-            personal_info: metadata.personal_info,
-          },
-        });
+    // If watermarking failed, don't proceed
+    if (!watermarkResult?.watermark_hash) {
+      return;
+    }
+    
+    // Store watermark hash in const to satisfy TypeScript type checking
+    const watermarkHash = watermarkResult.watermark_hash;
+    
+    // Minting is optional and non-blocking - run it asynchronously
+    // This ensures watermarking result is displayed immediately
+    if (authenticated) {
+      // Run minting in background without blocking UI
+      // Use setTimeout to ensure watermarking result is set first
+      setTimeout(async () => {
+        try {
+          const mintResult = await mintIpNFT({
+            watermarkHash: watermarkHash,
+            userId: metadata.user_id,
+            timestamp: Date.now(),
+            contentType: fileType || 'unknown',
+            license: metadata.license,
+            file: file,
+            additionalMetadata: {
+              personal_info: metadata.personal_info,
+            },
+          });
 
-        if (mintResult.success && mintResult.nftId) {
-          setNftId(mintResult.nftId);
+          if (mintResult.success && mintResult.nftId) {
+            setNftId(mintResult.nftId);
+          } else {
+            // If minting didn't succeed, use mock NFT
+            const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+            setNftId(mockNftId);
+            console.log('[Upload] Minting did not succeed, using mock NFT ID:', mockNftId);
+          }
+        } catch (err: any) {
+          console.error('[Upload] Minting error, falling back to mock NFT:', err.message);
+          // Fallback to mock NFT ID when real minting fails (same as audio/PDF)
+          const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+          setNftId(mockNftId);
+          console.log('[Upload] Mock NFT ID generated:', mockNftId);
         }
-      } catch (err: any) {
-        console.error('[Upload] Minting error, falling back to mock NFT:', err.message);
-        // Fallback to mock NFT ID when real minting fails (same as audio/PDF)
-        const mockNftId = `mock_${watermarkResult.watermark_hash.substring(0, 16)}_${Date.now()}`;
-        setNftId(mockNftId);
-        console.log('[Upload] Mock NFT ID generated:', mockNftId);
-      }
+      }, 100); // Small delay to ensure watermark result is displayed first
+    } else {
+      // If not authenticated, still set a mock NFT ID for consistency
+      const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+      setNftId(mockNftId);
+      console.log('[Upload] Not authenticated, using mock NFT ID:', mockNftId);
     }
   };
 

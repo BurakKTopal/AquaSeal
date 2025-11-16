@@ -42,8 +42,13 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     let timeoutId: NodeJS.Timeout | number | undefined;
     if (wallet?.address && !isDisconnecting) {
       timeoutId = setTimeout(async () => {
-        const newProvider = await generateProvider(acc);
-        setProvider(newProvider);
+        try {
+          const newProvider = await generateProvider(acc);
+          setProvider(newProvider);
+        } catch (error) {
+          console.warn('[WalletConnection] Error generating provider:', error);
+          setProvider(null);
+        }
       }, 200);
     } else if (!wallet?.address) {
       setProvider(null);

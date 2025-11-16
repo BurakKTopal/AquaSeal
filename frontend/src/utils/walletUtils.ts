@@ -1,7 +1,32 @@
 export const generateProvider = async (account: any) => {
   if (!account || !account.connector) return null;
 
-  const prov = await account.connector.getProvider();
+  // Safely get provider - handle different connector structures
+  // In production builds, connector.getProvider might not exist or be structured differently
+  let prov = null;
+  try {
+    // Check if getProvider method exists before calling it
+    if (typeof account.connector.getProvider === 'function') {
+      prov = await account.connector.getProvider();
+    } else if (account.connector.provider) {
+      // Fallback: use provider directly if available
+      prov = account.connector.provider;
+    } else if (account.connector.getAccount && typeof account.connector.getAccount === 'function') {
+      // Alternative: try getAccount if available
+      try {
+        const accountData = await account.connector.getAccount();
+        prov = accountData?.provider || null;
+      } catch (e) {
+        // Ignore getAccount errors
+      }
+    }
+  } catch (error) {
+    console.warn('[WalletUtils] Error getting provider, trying fallbacks:', error);
+    // Try fallback approaches
+    if (account.connector.provider) {
+      prov = account.connector.provider;
+    }
+  }
 
   return {
     provider: prov || null,

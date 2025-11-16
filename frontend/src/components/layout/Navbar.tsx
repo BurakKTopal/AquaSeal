@@ -24,8 +24,13 @@ const Navbar: React.FC = () => {
     let timeoutId: NodeJS.Timeout | number | undefined;
     if (wallet?.address) {
       timeoutId = setTimeout(async () => {
-        const newProvider = await generateProvider(acc);
-        setProvider(newProvider);
+        try {
+          const newProvider = await generateProvider(acc);
+          setProvider(newProvider);
+        } catch (error) {
+          console.warn('[Navbar] Error generating provider:', error);
+          setProvider(null);
+        }
       }, 200);
     }
     return () => {

@@ -2,6 +2,28 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
+// Plugin to inject exports polyfill at build time
+const injectExportsPolyfill = () => {
+  return {
+    name: 'inject-exports-polyfill',
+    transformIndexHtml(html: string) {
+      return html.replace(
+        '<head>',
+        `<head><script>
+          if (typeof exports === 'undefined') {
+            window.exports = {};
+            window.module = { exports: window.exports };
+            if (typeof globalThis !== 'undefined') {
+              globalThis.exports = window.exports;
+              globalThis.module = window.module;
+            }
+          }
+        </script>`
+      );
+    },
+  };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Get API URL from environment variable
@@ -14,6 +36,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      injectExportsPolyfill(),
       react(),
       nodePolyfills({
         include: [
@@ -73,6 +96,9 @@ export default defineConfig(({ mode }) => {
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
+        include: [/node_modules/],
+        // Ensure CommonJS modules are properly transformed
+        strictRequires: true,
       },
       rollupOptions: {
         output: {

@@ -1,0 +1,37 @@
+{
+    "version": "0.1",
+    "type": "container",
+    "meta": {
+        "trigger": "dashboard",
+        "system_requirements": {
+            "required_vram": 0
+        }
+    },
+    "ops": [
+        {
+            "type": "container/run",
+            "id": "aquaseal-backend",
+            "args": {
+                "image": "docker.io/burakkucuktopal/aquaseal-backend:latest",
+                "gpu": false,
+                "expose": [
+                    {
+                        "port": 8000,
+                        "health_checks": [
+                            {
+                                "type": "http",
+                                "path": "/health",
+                                "method": "GET",
+                                "expected_status": 200,
+                                "continuous": true
+                            }
+                        ]
+                    }
+                ],
+                "env": {
+                    "ALLOWED_ORIGINS": "*"
+                }
+            }
+        }
+    ]
+}

@@ -8,6 +8,9 @@ venv/
 env/
 ENV/
 .venv
+*.pyc
+*.pyo
+*.pyd
 
 # Uploads (should be in volume or external storage)
 uploads/
@@ -17,36 +20,84 @@ uploads/
 *.mp3
 *.wav
 *.pdf
+*.mp4
+*.avi
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # Tests
 tests/
-*.pyc
 .pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # Documentation
 *.md
 README*
+docs/
+*.rst
+*.txt
+!requirements.txt
+!runtime.txt
 
 # OS
 .DS_Store
 Thumbs.db
+*.swp
+*~
 
 # Build artifacts
 *.egg-info/
 dist/
 build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Railway/Vercel config (not needed in Docker)
 vercel.json
 railway.json
+fly.toml
+fly.toml.example
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.*.backup
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+package.json
+
+# Docker files (keep Dockerfile, exclude others)
+docker-compose*.yml
+.dockerignore
 

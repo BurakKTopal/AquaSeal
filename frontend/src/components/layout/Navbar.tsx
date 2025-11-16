@@ -38,7 +38,7 @@ const Navbar: React.FC = () => {
       <nav className={styles.navbar}>
         <div className={styles.container}>
           <Link to="/" className={styles.logo}>
-            <img src="/logo.svg" alt="AquaSeal" style={{ height: '32px', marginRight: '8px' }} />
+            <img src="/logo.svg" alt="AquaSeal" style={{ height: '32px' }} />
             AquaSeal
           </Link>
 

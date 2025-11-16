@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     UPLOAD_DIR: str = "./uploads"
     ALLOWED_IMAGE_EXTENSIONS: list[str] = [".jpg", ".jpeg", ".png", ".bmp", ".tiff"]
-    ALLOWED_AUDIO_EXTENSIONS: list[str] = [".wav", ".mp3", ".flac", ".ogg", ".m4a"]
+    ALLOWED_AUDIO_EXTENSIONS: list[str] = [".mp3"]  # Only MP3 supported - uses mutagen for metadata watermarking
     ALLOWED_PDF_EXTENSIONS: list[str] = [".pdf"]
     
     # CAMP Network Settings

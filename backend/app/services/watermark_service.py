@@ -6,7 +6,6 @@ from pathlib import Path
 
 from app.core.watermarking.image.invisible_watermark import InvisibleWatermarker
 from app.core.watermarking.image.stegano_fallback import SteganoWatermarker
-from app.core.watermarking.audio.audio_watermark import AudioWatermarker
 from app.core.watermarking.audio.mp3_metadata_watermark import MP3MetadataWatermarker
 from app.core.watermarking.metadata.metadata_watermark import MetadataWatermarker
 from app.core.watermarking.pdf.pdf_watermark import PDFWatermarker
@@ -22,7 +21,6 @@ class WatermarkService:
         """Initialize watermark service"""
         self._image_watermarker = None
         self._image_fallback = None
-        self._audio_watermarker = None
         self._metadata_watermarker = None
         self._pdf_watermarker = None
     
@@ -52,15 +50,6 @@ class WatermarkService:
             return None
         return self._image_fallback
     
-    def audio_watermarker(self, personalization_hash: str = None):
-        """Get audio watermarker with optional personalization"""
-        # Create watermarker with personalization if hash provided
-        # Note: We create a new instance per watermark to support personalization
-        # This is fine since watermarking is not a frequent operation
-        try:
-            return AudioWatermarker(personalization_hash=personalization_hash)
-        except WatermarkingException:
-            return None
     
     @property
     def metadata_watermarker(self):
@@ -107,9 +96,19 @@ class WatermarkService:
                 )
             raise WatermarkingException(f"Unsupported image format: {file_extension}")
         elif file_type == "audio":
-            # Audio watermarker is created per-request with personalization
-            # We'll handle this in embed_watermark method
-            raise WatermarkingException("Audio watermarker should be created with personalization hash")
+            # Only MP3 audio files are supported (uses MP3MetadataWatermarker)
+            if file_extension.lower() != '.mp3':
+                raise WatermarkingException(
+                    f"Only MP3 audio files are supported. Received: {file_extension}. "
+                    "Please convert your audio file to MP3 format."
+                )
+            watermarker = MP3MetadataWatermarker()
+            if watermarker and watermarker.supports_format(file_extension):
+                return watermarker
+            raise WatermarkingException(
+                "MP3 metadata watermarking not available. "
+                "Please install mutagen: pip install mutagen"
+            )
         elif file_type == "pdf":
             watermarker = self.pdf_watermarker
             if watermarker and watermarker.supports_format(file_extension):
@@ -169,27 +168,20 @@ class WatermarkService:
         if file_type == "image":
             watermarked_bytes = self._embed_image_multiple(file, file_extension, watermark_data, settings.REDUNDANT_WATERMARKS)
         elif file_type == "audio":
-            # For MP3 files, use metadata watermarking (survives compression)
-            # For other formats (WAV, FLAC), use DCT watermarking
-            if file_extension.lower() == '.mp3':
-                mp3_watermarker = MP3MetadataWatermarker()
-                if not mp3_watermarker.supports_format(file_extension):
-                    raise WatermarkingException(f"MP3 metadata watermarking not available")
-                file.seek(0)
-                watermarked_bytes = mp3_watermarker.embed(file, watermark_data)
-            else:
-                # For WAV, FLAC, etc. - use DCT watermarking
-                watermarker = self.audio_watermarker(personalization_hash=watermark_hash)
-                if watermarker is None:
-                    raise WatermarkingException(
-                        "Audio watermarking library not available. "
-                        "Please install librosa, soundfile, and scipy: "
-                        "pip install librosa soundfile scipy"
-                    )
-                if not watermarker.supports_format(file_extension):
-                    raise WatermarkingException(f"Unsupported audio format: {file_extension}")
-                file.seek(0)
-                watermarked_bytes = watermarker.embed(file, watermark_data)
+            # Only MP3 files are supported - use metadata watermarking (survives compression)
+            if file_extension.lower() != '.mp3':
+                raise WatermarkingException(
+                    f"Only MP3 audio files are supported. Received: {file_extension}. "
+                    "Please convert your audio file to MP3 format."
+                )
+            mp3_watermarker = MP3MetadataWatermarker()
+            if not mp3_watermarker.supports_format(file_extension):
+                raise WatermarkingException(
+                    "MP3 metadata watermarking not available. "
+                    "Please install mutagen: pip install mutagen"
+                )
+            file.seek(0)
+            watermarked_bytes = mp3_watermarker.embed(file, watermark_data)
         elif file_type == "pdf":
             # For PDFs, use PDF watermarker
             watermarker = self._get_watermarker(file_type, file_extension)
@@ -278,64 +270,21 @@ class WatermarkService:
         if file_type == "image":
             return self._extract_image_multiple(file, file_extension)
         elif file_type == "audio":
-            # For MP3 files, use metadata extraction
-            if file_extension.lower() == '.mp3':
-                mp3_watermarker = MP3MetadataWatermarker()
-                if mp3_watermarker.supports_format(file_extension):
-                    file.seek(0)
-                    return mp3_watermarker.extract(file)
-                else:
-                    raise WatermarkingException("MP3 metadata extraction not available")
-            
-            # For other audio formats, try DCT extraction with multiple strategies
-            # Strategy 1: Try with personalization hash if provided
-            if personalization_hash:
-                try:
-                    watermarker = self.audio_watermarker(personalization_hash=personalization_hash)
-                    if watermarker and watermarker.supports_format(file_extension):
-                        file.seek(0)
-                        return watermarker.extract(file)
-                except Exception:
-                    pass  # Try next strategy
-            
-            # Strategy 2: Try without personalization (uses base pattern)
-            try:
-                watermarker = self.audio_watermarker(personalization_hash=None)
-                if watermarker and watermarker.supports_format(file_extension):
-                    file.seek(0)
-                    return watermarker.extract(file)
-            except Exception as e1:
-                # Strategy 3: Try with empty string (might use different defaults)
-                try:
-                    watermarker = self.audio_watermarker(personalization_hash="")
-                    if watermarker and watermarker.supports_format(file_extension):
-                        file.seek(0)
-                        return watermarker.extract(file)
-                except Exception as e2:
-                    
-                    # Strategy 4: Try with a few common hash variations
-                    # This is a last resort - try some common hash patterns
-                    common_hashes = [
-                        "0" * 64,  # All zeros
-                        "f" * 64,  # All Fs
-                    ]
-                    
-                    for test_hash in common_hashes:
-                        try:
-                            watermarker = self.audio_watermarker(personalization_hash=test_hash)
-                            if watermarker and watermarker.supports_format(file_extension):
-                                file.seek(0)
-                                return watermarker.extract(file)
-                        except Exception:
-                            continue
-                    
-                    # All strategies failed
-                    raise WatermarkingException(
-                        f"Failed to extract audio watermark with any method. "
-                        f"Last error without personalization: {str(e1)}. "
-                        f"Last error with empty hash: {str(e2)}. "
-                        f"The watermark may have been embedded with a specific personalization hash that is not available."
-                    )
+            # Only MP3 files are supported - use metadata extraction
+            if file_extension.lower() != '.mp3':
+                raise WatermarkingException(
+                    f"Only MP3 audio files are supported. Received: {file_extension}. "
+                    "Please convert your audio file to MP3 format."
+                )
+            mp3_watermarker = MP3MetadataWatermarker()
+            if mp3_watermarker.supports_format(file_extension):
+                file.seek(0)
+                return mp3_watermarker.extract(file)
+            else:
+                raise WatermarkingException(
+                    "MP3 metadata extraction not available. "
+                    "Please install mutagen: pip install mutagen"
+                )
         else:
             # For other file types (pdf), use single watermarker
             watermarker = self._get_watermarker(file_type, file_extension)

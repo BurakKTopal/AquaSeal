@@ -7,11 +7,9 @@ pillow==10.1.0
 numpy==1.26.2
 invisible-watermark==0.2.0
 stegano>=0.11.5
-librosa>=0.10.1
-soundfile>=0.12.1
-scipy>=1.11.0
 mutagen>=1.47.0
 pypdf>=3.17.0
 reportlab>=4.0.0
 # httpx removed - no longer needed (NFTs minted in frontend, no backend API calls)
+# librosa, scipy, soundfile removed - only MP3 audio watermarking supported (using mutagen)
 

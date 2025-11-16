@@ -66,13 +66,29 @@ export function useOriginReact() {
       };
 
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
-      const result = await origin.registerIpNFT(
-        'file', // source
-        deadline,
-        licenseTerms,
-        metadata,
-        undefined, // fileKey - would need to upload file first if using file
-      );
+
+      // Wrap registerIpNFT in additional error handling to prevent crashes
+      let result;
+      try {
+        result = await origin.registerIpNFT(
+          'file', // source
+          deadline,
+          licenseTerms,
+          metadata,
+          undefined, // fileKey - would need to upload file first if using file
+        );
+      } catch (registerError: any) {
+        // Log detailed error info for debugging
+        console.error('[Origin] registerIpNFT failed:', {
+          error: registerError,
+          message: registerError?.message,
+          stack: registerError?.stack,
+          hasOrigin: !!origin,
+          hasViem: !!auth?.viem,
+        });
+        // Re-throw with more context
+        throw new Error(`Failed to register NFT: ${registerError?.message || registerError}`);
+      }
 
       console.log('[Origin] IpNFT registered successfully:', result);
 
@@ -86,6 +102,7 @@ export function useOriginReact() {
       };
     } catch (error: any) {
       console.error('[Origin] Minting error:', error);
+      // Ensure error is always thrown (not swallowed) so UploadPage can catch it
       throw error;
     } finally {
       setMinting(false);

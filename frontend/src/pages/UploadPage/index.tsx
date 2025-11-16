@@ -19,15 +19,15 @@ const UploadPage: React.FC = () => {
 
     // First, complete watermarking - this must always succeed
     const watermarkResult = await watermarkFile(file, metadata);
-    
+
     // If watermarking failed, don't proceed
     if (!watermarkResult?.watermark_hash) {
       return;
     }
-    
+
     // Store watermark hash in const to satisfy TypeScript type checking
     const watermarkHash = watermarkResult.watermark_hash;
-    
+
     // Minting is optional and non-blocking - run it asynchronously
     // This ensures watermarking result is displayed immediately
     // Note: In production builds, minting may fail due to wallet provider initialization issues
@@ -35,36 +35,56 @@ const UploadPage: React.FC = () => {
     if (authenticated) {
       // Run minting in background without blocking UI
       // Use setTimeout to ensure watermarking result is set first
-      setTimeout(async () => {
-        let mockNftId: string | null = null;
-        try {
-          const mintResult = await mintIpNFT({
-            watermarkHash: watermarkHash,
-            userId: metadata.user_id,
-            timestamp: Date.now(),
-            contentType: fileType || 'unknown',
-            license: metadata.license,
-            file: file,
-            additionalMetadata: {
-              personal_info: metadata.personal_info,
-            },
-          });
+      // Wrap in IIFE to ensure all errors are caught
+      setTimeout(() => {
+        (async () => {
+          let mockNftId: string | null = null;
+          try {
+            const mintResult = await mintIpNFT({
+              watermarkHash: watermarkHash,
+              userId: metadata.user_id,
+              timestamp: Date.now(),
+              contentType: fileType || 'unknown',
+              license: metadata.license,
+              file: file,
+              additionalMetadata: {
+                personal_info: metadata.personal_info,
+              },
+            });
 
-          if (mintResult.success && mintResult.nftId) {
-            setNftId(mintResult.nftId);
-            return; // Success - exit early
+            if (mintResult.success && mintResult.nftId) {
+              setNftId(mintResult.nftId);
+              return; // Success - exit early
+            }
+            // If we get here, minting didn't succeed
+            throw new Error('Minting did not return success');
+          } catch (err: any) {
+            // Catch ALL errors: signature errors, network errors, provider errors, etc.
+            // This ensures the app never crashes - always falls back to mock NFT
+            console.error('[Upload] Minting error (expected in some production builds), falling back to mock NFT:', err?.message || err);
+
+            // Always set mock NFT when minting fails (same as audio/PDF behavior)
+            try {
+              mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+              setNftId(mockNftId);
+              console.log('[Upload] Mock NFT ID generated (minting unavailable):', mockNftId);
+            } catch (setError: any) {
+              // Even if setNftId fails, log it but don't crash
+              console.error('[Upload] Failed to set mock NFT ID:', setError);
+            }
           }
-          // If we get here, minting didn't succeed
-          throw new Error('Minting did not return success');
-        } catch (err: any) {
-          // Catch ALL errors: signature errors, network errors, provider errors, etc.
-          console.error('[Upload] Minting error (expected in some production builds), falling back to mock NFT:', err.message || err);
-          
-          // Always set mock NFT when minting fails (same as audio/PDF behavior)
-          mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
-          setNftId(mockNftId);
-          console.log('[Upload] Mock NFT ID generated (minting unavailable):', mockNftId);
-        }
+        })().catch((unhandledError: any) => {
+          // Final safety net - catch any unhandled promise rejections
+          console.error('[Upload] Unhandled error in minting async function:', unhandledError);
+          // Still try to set mock NFT as last resort
+          try {
+            const fallbackMockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+            setNftId(fallbackMockNftId);
+            console.log('[Upload] Fallback mock NFT ID set:', fallbackMockNftId);
+          } catch (e) {
+            console.error('[Upload] Critical: Could not set fallback mock NFT:', e);
+          }
+        });
       }, 100); // Small delay to ensure watermark result is displayed first
     } else {
       // If not authenticated, still set a mock NFT ID for consistency
@@ -95,27 +115,27 @@ const UploadPage: React.FC = () => {
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://10.45.107.163:8000';
         // Remove /api/v1 from base URL if present, since downloadUrl already includes /api/v1/download/...
         const baseUrl = apiBaseUrl.replace('/api/v1', '');
-        fullUrl = downloadUrl.startsWith('/') 
+        fullUrl = downloadUrl.startsWith('/')
           ? `${baseUrl}${downloadUrl}`
           : `${baseUrl}/${downloadUrl}`;
       }
-      
+
       // Fetch the file
       const response = await fetch(fullUrl);
       if (!response.ok) throw new Error('Failed to download file');
-      
+
       const blob = await response.blob();
-      
+
       // Extract filename from URL or use original filename
       const urlParts = downloadUrl.split('/');
       let filename = urlParts[urlParts.length - 1] || 'watermarked_file';
-      
+
       // If we have the original file, use its extension
       if (file && !filename.includes('.')) {
         const originalExt = file.name.substring(file.name.lastIndexOf('.'));
         filename = `watermarked_${file.name.replace(originalExt, '')}${originalExt}`;
       }
-      
+
       // Create download link
       const downloadLink = document.createElement('a');
       downloadLink.href = URL.createObjectURL(blob);
@@ -127,8 +147,8 @@ const UploadPage: React.FC = () => {
     } catch (error) {
       console.error('Download error:', error);
       // Fallback to opening in new tab
-      const fallbackUrl = downloadUrl.startsWith('http') 
-        ? downloadUrl 
+      const fallbackUrl = downloadUrl.startsWith('http')
+        ? downloadUrl
         : `${import.meta.env.VITE_API_URL || 'http://10.45.107.163:8000'}${downloadUrl}`;
       window.open(fallbackUrl, '_blank');
     }
@@ -170,8 +190,8 @@ const UploadPage: React.FC = () => {
 
           {file && (
             <div className={styles.metadataSection}>
-              <MetadataForm 
-                onSubmit={handleMetadataSubmit} 
+              <MetadataForm
+                onSubmit={handleMetadataSubmit}
                 loading={loading || minting}
                 disabled={!authenticated}
               />

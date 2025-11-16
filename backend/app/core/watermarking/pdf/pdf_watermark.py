@@ -1,10 +1,8 @@
-"""PDF watermarking - embeds hash in PDF metadata and adds visual logo watermark"""
+"""PDF watermarking - embeds hash in PDF metadata"""
 import io
 import json
 import base64
-import os
 from typing import BinaryIO
-from pathlib import Path
 
 try:
     from pypdf import PdfReader, PdfWriter
@@ -15,40 +13,22 @@ except ImportError:
         PdfReader = None
         PdfWriter = None
 
-try:
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import letter, A4
-    from reportlab.lib.utils import ImageReader
-    from PIL import Image
-    REPORTLAB_AVAILABLE = True
-except ImportError:
-    REPORTLAB_AVAILABLE = False
-
 from app.core.watermarking.base import BaseWatermarker
 from app.utils.exceptions import WatermarkingException
 
 
 class PDFWatermarker(BaseWatermarker):
-    """Watermarker that embeds hash in PDF metadata and adds visual logo watermark"""
+    """Watermarker that embeds hash in PDF metadata"""
     
     WATERMARK_KEY = "WMHash"  # Custom metadata key
     PAYLOAD_KEY = "WMPayload"  # Full payload key
     
     def __init__(self):
-        """Initialize PDF watermarker with logo path"""
-        # Try to find logo file
-        logo_paths = [
-            Path(__file__).parent.parent.parent.parent / "assets" / "logo.svg",
-            Path(__file__).parent.parent.parent.parent.parent / "backend" / "app" / "assets" / "logo.svg",
-        ]
-        self.logo_path = None
-        for path in logo_paths:
-            if path.exists():
-                self.logo_path = path
-                break
+        """Initialize PDF watermarker"""
+        pass
     
     def embed(self, file: BinaryIO, watermark_data: bytes) -> bytes:
-        """Embed watermark into PDF metadata and as invisible text"""
+        """Embed watermark into PDF metadata"""
         if PdfReader is None or PdfWriter is None:
             raise WatermarkingException(
                 "PDF library not available. Please install pypdf: pip install pypdf"
@@ -91,15 +71,6 @@ class PDFWatermarker(BaseWatermarker):
             # Set metadata
             pdf_writer.add_metadata(metadata)
             
-            # Add visual logo watermark to all pages
-            if REPORTLAB_AVAILABLE and self.logo_path and self.logo_path.exists():
-                try:
-                    watermarked_pdf = self._add_logo_watermark(pdf_writer)
-                    return watermarked_pdf
-                except Exception as e:
-                    # Continue without logo watermark - metadata is still embedded
-                    pass
-            
             # Write PDF to bytes
             output = io.BytesIO()
             pdf_writer.write(output)
@@ -109,73 +80,6 @@ class PDFWatermarker(BaseWatermarker):
             
         except Exception as e:
             raise WatermarkingException(f"Failed to embed PDF watermark: {str(e)}")
-    
-    def _add_logo_watermark(self, pdf_writer: PdfWriter) -> bytes:
-        """Add logo watermark overlay to PDF pages"""
-        if not REPORTLAB_AVAILABLE:
-            raise WatermarkingException("reportlab not available for logo watermarking")
-        
-        # Create watermark PDF with logo
-        watermark_buffer = io.BytesIO()
-        c = canvas.Canvas(watermark_buffer, pagesize=A4)
-        
-        # Convert SVG to PNG if needed, or use directly
-        try:
-            # Try to open as image (PIL can handle SVG if cairosvg is available)
-            if self.logo_path.suffix.lower() == '.svg':
-                # For SVG, we'll create a simple text/logo watermark instead
-                # In production, you'd use cairosvg to convert SVG to PNG
-                # For now, create a text watermark
-                c.setFont("Helvetica-Bold", 24)
-                c.setFillColorRGB(0.2, 0.4, 0.8, alpha=0.3)  # Blue with transparency
-                c.rotate(45)
-                c.drawString(200, 100, "AquaSeal")
-                c.rotate(-45)
-            else:
-                # Use PIL to open image
-                img = Image.open(self.logo_path)
-                # Resize logo (make it smaller for watermark)
-                img.thumbnail((150, 150), Image.Resampling.LANCZOS)
-                
-                # Get page dimensions
-                page_width, page_height = A4
-                
-                # Position logo in bottom-right corner with transparency
-                logo_width, logo_height = img.size
-                x = page_width - logo_width - 30
-                y = 30
-                
-                # Draw logo with transparency
-                c.saveState()
-                c.setFillAlpha(0.3)  # 30% opacity
-                c.drawImage(ImageReader(img), x, y, width=logo_width, height=logo_height)
-                c.restoreState()
-        except Exception as e:
-            # Fallback: text watermark
-            c.setFont("Helvetica-Bold", 20)
-            c.setFillColorRGB(0.2, 0.4, 0.8, alpha=0.3)
-            c.rotate(45)
-            c.drawString(200, 100, "AquaSeal")
-            c.rotate(-45)
-        
-        c.save()
-        watermark_buffer.seek(0)
-        
-        # Merge watermark PDF with original pages
-        watermark_reader = PdfReader(watermark_buffer)
-        watermark_page = watermark_reader.pages[0]
-        
-        # Apply watermark to all pages
-        for i, page in enumerate(pdf_writer.pages):
-            # Merge watermark page with content page
-            page.merge_page(watermark_page)
-        
-        # Write final PDF
-        output = io.BytesIO()
-        pdf_writer.write(output)
-        output.seek(0)
-        
-        return output.read()
     
     def extract(self, file: BinaryIO) -> bytes:
         """Extract watermark from PDF metadata"""

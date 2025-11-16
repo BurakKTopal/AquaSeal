@@ -22,6 +22,15 @@ export function useOriginReact() {
       // Use the origin instance from React hook
       const origin = auth.origin;
 
+      // Log environment info for debugging production issues
+      console.log('[Origin] Minting attempt:', {
+        hasOrigin: !!auth.origin,
+        hasViem: !!auth.viem,
+        authenticated,
+        walletAddress: auth?.walletAddress,
+        environment: import.meta.env.MODE,
+      });
+
       // Prepare metadata for IpNFT
       const metadata = {
         name: `Watermarked ${params.contentType} - ${params.userId}`,

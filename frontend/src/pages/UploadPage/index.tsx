@@ -30,10 +30,13 @@ const UploadPage: React.FC = () => {
     
     // Minting is optional and non-blocking - run it asynchronously
     // This ensures watermarking result is displayed immediately
+    // Note: In production builds, minting may fail due to wallet provider initialization issues
+    // The mock NFT fallback ensures the process always completes successfully
     if (authenticated) {
       // Run minting in background without blocking UI
       // Use setTimeout to ensure watermarking result is set first
       setTimeout(async () => {
+        let mockNftId: string | null = null;
         try {
           const mintResult = await mintIpNFT({
             watermarkHash: watermarkHash,
@@ -49,18 +52,18 @@ const UploadPage: React.FC = () => {
 
           if (mintResult.success && mintResult.nftId) {
             setNftId(mintResult.nftId);
-          } else {
-            // If minting didn't succeed, use mock NFT
-            const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
-            setNftId(mockNftId);
-            console.log('[Upload] Minting did not succeed, using mock NFT ID:', mockNftId);
+            return; // Success - exit early
           }
+          // If we get here, minting didn't succeed
+          throw new Error('Minting did not return success');
         } catch (err: any) {
-          console.error('[Upload] Minting error, falling back to mock NFT:', err.message);
-          // Fallback to mock NFT ID when real minting fails (same as audio/PDF)
-          const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
+          // Catch ALL errors: signature errors, network errors, provider errors, etc.
+          console.error('[Upload] Minting error (expected in some production builds), falling back to mock NFT:', err.message || err);
+          
+          // Always set mock NFT when minting fails (same as audio/PDF behavior)
+          mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
           setNftId(mockNftId);
-          console.log('[Upload] Mock NFT ID generated:', mockNftId);
+          console.log('[Upload] Mock NFT ID generated (minting unavailable):', mockNftId);
         }
       }, 100); // Small delay to ensure watermark result is displayed first
     } else {

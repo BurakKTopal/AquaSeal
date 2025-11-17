@@ -3,18 +3,12 @@
 ## **Vision**
 AquaSeal is a decentralized intellectual property protection platform that merges steganographic watermarking with blockchain-based proof-of-ownership. It enables creators to secure their digital assets and prove authenticity in a trustless, verifiable way.
 
----
-
 ## **What We Built**
 AquaSeal is a full-stack Web3 application that embeds invisible, robust watermarks into digital content—images, audio files, and PDFs—and registers them as Intellectual Property NFTs on the CAMP network. This creates an immutable, on-chain proof-of-ownership record.
-
----
 
 ## **Core Innovation**
 Traditional watermarking is easy to remove or tamper with. AquaSeal embeds invisible watermarks that survive compression, resizing, and format conversion. Ownership is registered on-chain via CAMP IpNFTs, which store the watermark hash as metadata. Anyone can verify authenticity without relying on a central authority.  
 Supports images, audio, and PDFs.
-
----
 
 ## **Key Features**
 
@@ -37,8 +31,6 @@ Supports images, audio, and PDFs.
 - Watermark extraction and blockchain validation  
 - Tamper detection for altered or missing watermarks  
 - Ownership proof tied to on-chain IpNFT records  
-
----
 
 ## **Technical Architecture**
 
@@ -63,16 +55,12 @@ Supports images, audio, and PDFs.
 - Origin SDK for client-side minting with watermark metadata  
 - Verification via The Graph subgraph queries  
 
----
-
 ## **Use Cases**
 - Creators: photographers, musicians, digital artists  
 - Digital publishers tracking document distribution  
 - NFT marketplaces verifying authenticity  
 - Legal/IP services securing creation evidence  
 - Media companies detecting unauthorized usage  
-
----
 
 ## **Tech Stack**
 
@@ -96,21 +84,15 @@ Supports images, audio, and PDFs.
 - The Graph Protocol  
 - EVM-compatible wallets  
 
----
-
 ## **API Endpoints**
 - **POST** `/api/v1/upload` – Upload and watermark  
 - **POST** `/api/v1/verify` – Verify watermark  
 - **POST** `/api/v1/extract` – Extract watermark  
 - **GET** `/api/v1/download/{filename}` – Download watermarked file  
 
----
-
 ## **Deployment**
 - Backend: `https://aquaseal-production.up.railway.app`  
 - Frontend: `https://aquaseal-frontend.vercel.app`  
-
----
 
 ## **Future Enhancements**
 - Video watermarking  

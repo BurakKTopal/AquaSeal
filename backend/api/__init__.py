@@ -1,2 +1,0 @@
-# Vercel API directory
-

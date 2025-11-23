@@ -22,8 +22,7 @@
 .statusSection,
 .formSection,
 .querySection,
-.resultsSection,
-.debugSection {
+.resultsSection {
   background: #f9f9f9;
   border-radius: 8px;
   padding: 1.5rem;
@@ -34,8 +33,7 @@
 .statusSection h2,
 .formSection h2,
 .querySection h2,
-.resultsSection h2,
-.debugSection h2 {
+.resultsSection h2 {
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 1rem;
@@ -317,25 +315,4 @@
   overflow-y: auto;
 }
 
-.debugContent {
-  color: #555;
-}
-
-.debugContent ul {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
-}
-
-.debugContent li {
-  margin-bottom: 0.5rem;
-}
-
-.debugNote {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #e7f3ff;
-  border-left: 4px solid #007bff;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
 

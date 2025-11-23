@@ -59,38 +59,25 @@ const UploadPage: React.FC = () => {
             // If we get here, minting didn't succeed
             throw new Error('Minting did not return success');
           } catch (err: any) {
-            // Catch ALL errors: signature errors, network errors, provider errors, etc.
-            // This ensures the app never crashes - always falls back to mock NFT
-            console.error('[Upload] Minting error (expected in some production builds), falling back to mock NFT:', err?.message || err);
-
-            // Always set mock NFT when minting fails (same as audio/PDF behavior)
             try {
               mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
               setNftId(mockNftId);
-              console.log('[Upload] Mock NFT ID generated (minting unavailable):', mockNftId);
             } catch (setError: any) {
-              // Even if setNftId fails, log it but don't crash
               console.error('[Upload] Failed to set mock NFT ID:', setError);
             }
           }
-        })().catch((unhandledError: any) => {
-          // Final safety net - catch any unhandled promise rejections
-          console.error('[Upload] Unhandled error in minting async function:', unhandledError);
-          // Still try to set mock NFT as last resort
+        })().catch(() => {
           try {
             const fallbackMockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
             setNftId(fallbackMockNftId);
-            console.log('[Upload] Fallback mock NFT ID set:', fallbackMockNftId);
           } catch (e) {
             console.error('[Upload] Critical: Could not set fallback mock NFT:', e);
           }
         });
-      }, 100); // Small delay to ensure watermark result is displayed first
+      }, 100);
     } else {
-      // If not authenticated, still set a mock NFT ID for consistency
       const mockNftId = `mock_${watermarkHash.substring(0, 16)}_${Date.now()}`;
       setNftId(mockNftId);
-      console.log('[Upload] Not authenticated, using mock NFT ID:', mockNftId);
     }
   };
 
@@ -112,7 +99,7 @@ const UploadPage: React.FC = () => {
         fullUrl = downloadUrl;
       } else {
         // If it's a relative URL, construct the full URL
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://10.45.107.163:8000';
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         // Remove /api/v1 from base URL if present, since downloadUrl already includes /api/v1/download/...
         const baseUrl = apiBaseUrl.replace('/api/v1', '');
         fullUrl = downloadUrl.startsWith('/')
@@ -149,7 +136,7 @@ const UploadPage: React.FC = () => {
       // Fallback to opening in new tab
       const fallbackUrl = downloadUrl.startsWith('http')
         ? downloadUrl
-        : `${import.meta.env.VITE_API_URL || 'http://10.45.107.163:8000'}${downloadUrl}`;
+        : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${downloadUrl}`;
       window.open(fallbackUrl, '_blank');
     }
   };

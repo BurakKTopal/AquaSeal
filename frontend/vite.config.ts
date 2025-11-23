@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
   // In development, fallback to localhost or network IP
   const apiUrl = process.env.VITE_API_URL ||
     (mode === 'production'
-      ? 'https://your-backend.vercel.app/api/v1'  // Update with your backend URL
+      ? 'https://aquaseal-production.up.railway.app/api/v1'
       : 'http://localhost:8000/api/v1');
 
   return {

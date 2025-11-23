@@ -22,14 +22,6 @@ export function useOriginReact() {
       // Use the origin instance from React hook
       const origin = auth.origin;
 
-      // Log environment info for debugging production issues
-      console.log('[Origin] Minting attempt:', {
-        hasOrigin: !!auth.origin,
-        hasViem: !!auth.viem,
-        authenticated,
-        walletAddress: auth?.walletAddress,
-        environment: import.meta.env.MODE,
-      });
 
       // Prepare metadata for IpNFT
       const metadata = {
@@ -44,14 +36,9 @@ export function useOriginReact() {
       };
 
       // Upload file to IPFS if provided (optional)
-      let fileUrl: string | undefined;
       if (params.file) {
         try {
-          const pinataResult = await originService.uploadToPinata(params.file);
-          if (pinataResult) {
-            fileUrl = pinataResult;
-            console.log('[Origin] File uploaded to IPFS:', fileUrl);
-          }
+          await originService.uploadToPinata(params.file);
         } catch (error: any) {
           console.warn('[Origin] IPFS upload failed (non-critical), continuing without file URL:', error.message);
         }
@@ -78,19 +65,8 @@ export function useOriginReact() {
           undefined, // fileKey - would need to upload file first if using file
         );
       } catch (registerError: any) {
-        // Log detailed error info for debugging
-        console.error('[Origin] registerIpNFT failed:', {
-          error: registerError,
-          message: registerError?.message,
-          stack: registerError?.stack,
-          hasOrigin: !!origin,
-          hasViem: !!auth?.viem,
-        });
-        // Re-throw with more context
         throw new Error(`Failed to register NFT: ${registerError?.message || registerError}`);
       }
-
-      console.log('[Origin] IpNFT registered successfully:', result);
 
       return {
         success: true,

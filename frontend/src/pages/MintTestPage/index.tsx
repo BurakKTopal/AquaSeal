@@ -78,15 +78,10 @@ const MintTestPage: React.FC = () => {
 
       setMintResult(result);
 
-      if (result.success) {
-        console.log('✅ Minting successful:', result);
-      } else {
-        console.warn('⚠️ Minting result:', result);
-      }
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to mint NFT';
       setMintError(errorMessage);
-      console.error('❌ Minting error:', err);
+      console.error('Minting error:', err);
     }
   };
 
@@ -102,11 +97,10 @@ const MintTestPage: React.FC = () => {
     try {
       const result = await queryNFT(queryHash.trim());
       setQueryResult(result);
-      console.log('✅ Query successful:', result);
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to query NFT';
       setQueryError(errorMessage);
-      console.error('❌ Query error:', err);
+      console.error('Query error:', err);
     }
   };
 
@@ -129,9 +123,7 @@ const MintTestPage: React.FC = () => {
       {/* Authentication Section */}
       <div className={styles.statusSection}>
         <WalletConnection
-          onAuthenticated={(method) => {
-            console.log('[MintTest] Authenticated via:', method);
-          }}
+          onAuthenticated={() => {}}
         />
       </div>
 
@@ -403,22 +395,6 @@ const MintTestPage: React.FC = () => {
         </div>
       )}
 
-      {/* Debug Info */}
-      <div className={styles.debugSection}>
-        <h2>Debug Information</h2>
-        <div className={styles.debugContent}>
-          <p><strong>Check browser console</strong> for detailed logs:</p>
-          <ul>
-            <li>Origin SDK initialization status</li>
-            <li>Minting request details</li>
-            <li>API responses</li>
-            <li>Error traces</li>
-          </ul>
-          <p className={styles.debugNote}>
-            Open DevTools (F12) → Console tab to see detailed debugging information
-          </p>
-        </div>
-      </div>
     </div>
   );
 };

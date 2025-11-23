@@ -84,16 +84,6 @@ const VerificationResult: React.FC<VerificationResultProps> = ({ result, onReset
           </div>
         )}
 
-        {result.debug_info && (
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Debug Information</h3>
-            <ul className={styles.debugList}>
-              {result.debug_info.map((info: string, index: number) => (
-                <li key={index} className={styles.debugItem}>{info}</li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {onReset && (
           <div className={styles.actions}>

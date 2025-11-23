@@ -1,102 +1,67 @@
-# **AquaSeal – IP Protection Platform**
+# AquaSeal
 
-## **Vision**
-AquaSeal is a decentralized intellectual property protection platform that merges steganographic watermarking with blockchain-based proof-of-ownership. It enables creators to secure their digital assets and prove authenticity in a trustless, verifiable way.
+A decentralized intellectual property protection platform that combines steganographic watermarking with blockchain-based proof-of-ownership. AquaSeal enables creators to secure their digital assets and prove authenticity in a trustless, verifiable way.
 
-## **What We Built**
-AquaSeal is a full-stack Web3 application that embeds invisible, robust watermarks into digital content—images, audio files, and PDFs—and registers them as Intellectual Property NFTs on the CAMP network. This creates an immutable, on-chain proof-of-ownership record.
+## Overview
 
-## **Core Innovation**
-Traditional watermarking is easy to remove or tamper with. AquaSeal embeds invisible watermarks that survive compression, resizing, and format conversion. Ownership is registered on-chain via CAMP IpNFTs, which store the watermark hash as metadata. Anyone can verify authenticity without relying on a central authority.  
-Supports images, audio, and PDFs.
+AquaSeal is a full-stack Web3 application that embeds invisible, robust watermarks into digital content (images, audio files, and PDFs) and registers them as Intellectual Property NFTs on the CAMP network. This creates an immutable, on-chain proof-of-ownership record that survives compression, resizing, and format conversion.
 
-## **Key Features**
+## Key Features
 
-### **Multi-Format Watermarking**
-- **Images:** Invisible steganographic watermarks resilient to compression  
-- **Audio MP3:** Metadata-based watermarking embedded in ID3 tags  
-- **PDFs:** Visual logo watermarks plus metadata-based protection  
+- **Multi-Format Watermarking**: Supports images (invisible steganographic), MP3 audio (metadata-based), and PDFs (visual + metadata)
+- **Blockchain Integration**: IpNFT minting via CAMP Origin SDK with on-chain proof storage
+- **Decentralized Verification**: Watermark extraction and blockchain validation without central authority
+- **Modern Web3 UI**: React-based interface with Web3 wallet support
 
-### **Blockchain Integration**
-- **CAMP Network Integration:** IpNFT minting via Origin SDK  
-- **On-Chain Proof:** Watermark hash stored as NFT metadata  
-- **Decentralized Verification:** CAMP subgraph used for authenticity checks  
+## Technical Stack
 
-### **User Interface**
-- Modern React UI with TypeScript and Vite  
-- Web3 wallet support (MetaMask, EVM wallets)  
-- Real-time watermarking and verification feedback  
+### Backend
+- **Python 3.11** with FastAPI
+- **Watermarking Libraries**: invisible-watermark, mutagen, reportlab, pypdf
+- **Deployment**: Docker, Railway
 
-### **Verification System**
-- Watermark extraction and blockchain validation  
-- Tamper detection for altered or missing watermarks  
-- Ownership proof tied to on-chain IpNFT records  
+### Frontend
+- **React 18+** with TypeScript
+- **Build Tool**: Vite
+- **Web3**: Origin SDK, Wagmi, Viem
+- **Deployment**: Vercel
 
-## **Technical Architecture**
+### Blockchain
+- **CAMP Network** with IpNFT standard
+- **Origin SDK** for client-side minting
+- **The Graph Protocol** for subgraph queries
 
-### **Backend**
-- Python FastAPI with modular design  
-- Multiple watermarking algorithms:  
-  - `invisible-watermark` for images  
-  - custom MP3 watermarking via `mutagen`  
-  - PDF watermarking using `reportlab` + `pypdf`  
-- REST API for upload, verify, extract  
-- Dockerized with multi-stage builds  
-- Optimized for Railway deployment (<8GB)
+## Architecture
 
-### **Frontend**
-- React 18+ with TypeScript and Vite  
-- Origin SDK for CAMP network NFT minting  
-- Wagmi + Viem for wallet and blockchain interactions  
-- Responsive UI for desktop and mobile  
+The application follows a modular architecture:
 
-### **Blockchain Layer**
-- CAMP IpNFT standard  
-- Origin SDK for client-side minting with watermark metadata  
-- Verification via The Graph subgraph queries  
+- **Backend**: RESTful API with separate services for watermarking, verification, and file handling
+- **Frontend**: Component-based React architecture with custom hooks for Web3 interactions
+- **Blockchain Layer**: Client-side NFT minting with metadata storage on-chain
 
-## **Use Cases**
-- Creators: photographers, musicians, digital artists  
-- Digital publishers tracking document distribution  
-- NFT marketplaces verifying authenticity  
-- Legal/IP services securing creation evidence  
-- Media companies detecting unauthorized usage  
+## API Endpoints
 
-## **Tech Stack**
+- `POST /api/v1/upload` - Upload and watermark files
+- `POST /api/v1/verify` - Verify watermark authenticity
+- `POST /api/v1/extract` - Extract watermark from files
+- `GET /api/v1/download/{filename}` - Download watermarked files
 
-### **Backend**
-- Python 3.11  
-- FastAPI  
-- invisible-watermark, mutagen, reportlab, pypdf  
-- Docker  
-- Railway  
+## Deployment
 
-### **Frontend**
-- React 18+  
-- TypeScript  
-- Vite  
-- Origin SDK  
-- Axios  
+- **Backend**: [Railway](https://aquaseal-production.up.railway.app)
+- **Frontend**: [Vercel](https://aquaseal-frontend.vercel.app)
 
-### **Blockchain**
-- CAMP Network  
-- Origin SDK  
-- The Graph Protocol  
-- EVM-compatible wallets  
+## Use Cases
 
-## **API Endpoints**
-- **POST** `/api/v1/upload` – Upload and watermark  
-- **POST** `/api/v1/verify` – Verify watermark  
-- **POST** `/api/v1/extract` – Extract watermark  
-- **GET** `/api/v1/download/{filename}` – Download watermarked file  
+- Digital creators protecting intellectual property
+- NFT marketplaces verifying authenticity
+- Media companies detecting unauthorized usage
+- Legal/IP services securing creation evidence
 
-## **Deployment**
-- Backend: `https://aquaseal-production.up.railway.app`  
-- Frontend: `https://aquaseal-frontend.vercel.app`  
+## Future Enhancements
 
-## **Future Enhancements**
-- Video watermarking  
-- Batch processing  
-- More robust watermark algorithms  
-- Multi-chain support  
-- Marketplace integration for IP trading  
+- Video watermarking support
+- Batch processing capabilities
+- Enhanced watermark algorithms
+- Multi-chain support
+- Marketplace integration for IP trading
